@@ -4,14 +4,25 @@ import pika
 import pickle
 import uuid
 import subprocess
+import os
 
 class GdalJob:
     
-    def __init__(self, args, job_type):
+    def __init__(self, args, job_type=None):
         
         self.args = args
         self.id = uuid.uuid1()
         self.job_type = job_type
+
+class ImportJob(GdalJob):
+
+    def __init__(self, path_to_file, args=[]):
+
+        self.args = args
+        self.id = uuid.uuid1()
+        self.path_to_file = path_to_file
+        #TODO: Remove
+        self.job_type = 'load_shape'
 
 
 class GdalEngine:
@@ -46,14 +57,20 @@ class GdalEngine:
             if job.job_type == 'generic':
 
                 return_value = self.handle_generic_job(job)
-            
-            return_value = subprocess.run(job.args)
-        
-            if return_value.returncode == 0:
-                self.l.info(f'Job {job.id} finished successfully')
 
-            else: 
-                self.l.error(f'Error in {job.id} failed')
+                if return_value.returncode == 0:
+
+                    self.l.info(f'Job {job.id} finished successfully')
+
+                else: 
+
+                    self.l.error(f'Error in {job.id} failed')
+
+            if job.job_type == 'load_shape':
+
+                return_value = self.load_shape(job)
+        
+            
 
         finally:
             self.busy = False
@@ -69,6 +86,23 @@ class GdalEngine:
     def load_shape(self, job):
 
         self.l.info(f'load_shape ')
+
+        host = os.environ['PGHOST']
+        database = os.environ['PGDATABASE']
+        user = os.environ['PGUSER']
+        password = os.environ['PGPASSWORD']
+
+        executable = ['ogr2ogr']
+        target = ['-f','PostgreSQL' ]
+        connection_string = [f'PG: host={host} dbname={database} user={user} password={password}']
+        
+        #TODO: Add schema
+
+        args = executable + target + connection_string + [job.path_to_file]
+        
+        return_value = subprocess.run(args)
+        print(return_value)
+        return return_value
 
 class GdalClient:
     
