@@ -37,7 +37,6 @@ class GdalEngine:
         
     def listen(self):
         
-        print('Listen')
         self.l.debug('listen')
         while(True):
             time.sleep(5)
