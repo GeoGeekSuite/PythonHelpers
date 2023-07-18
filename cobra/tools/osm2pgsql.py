@@ -3,6 +3,13 @@ from cobra.tools.job import Job
 from cobra.tools.job_engine import JobEngine
 import time
 import subprocess
+from cobra.tools.client import Client
+
+class Osm2pgsqlClient(Client):
+
+    def __init__(self):
+
+        super().__init__('osm2pgsql')
 
 class Osm2pgsqlJob(Job):
 
