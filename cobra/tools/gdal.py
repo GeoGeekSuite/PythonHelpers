@@ -94,11 +94,13 @@ class GdalEngine:
         executable = ['ogr2ogr']
         target = ['-f','PostgreSQL' ]
         connection_string = [f'PG: host={host} dbname={database} user={user} password={password}']
-        
+        additional_args = ['-nlt', 'PROMOTE_TO_MULTI']
         #TODO: Add schema
 
-        args = executable + target + connection_string + [job.path_to_file]
         
+        args = executable + target + connection_string + additional_args + [job.path_to_file]
+        self.l.debug(args)
+
         return_value = subprocess.run(args)
         print(return_value)
         return return_value
